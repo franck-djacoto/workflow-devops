@@ -1,0 +1,169 @@
+version: '3'
+
+networks:
+ private:
+ web:
+  external:
+   name: web
+
+services:
+ #-------------
+ #---Traefik---
+ #-------------
+ traefik:
+  image: traefik:v2.4.2
+  ports:
+   - 80:80
+   - 443:443
+#   - 8080:8080
+  volumes:
+   - /var/run/docker.sock:/var/run/docker.sock:ro
+#   - $PWD/traefik.toml:/etc/traefik/traefik.toml
+#   - $PWD/acme.json:/acme.json
+   - /docker/letsencrypt:/letsencrypt
+  networks:
+   - web
+  command:
+   - --log.level=DEBUG
+   - --api.insecure=true
+   - --providers.docker=true
+   - --providers.docker.exposedbydefault=true
+   - --entrypoints.web.address=:80
+   - --entrypoints.websecure.address=:443
+   - --entrypoints.web.http.redirections.entryPoint.to=websecure
+   - --entrypoints.web.http.redirections.entryPoint.scheme=https
+   - --certificatesresolvers.myresolver.acme.httpchallenge=true
+   - --certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web
+   - --certificatesresolvers.myresolver.acme.email=projetthiptop@gmail.com
+   - --certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json
+#   - --api.dashboard=true
+#   - --api.insecure=true
+#   - --entrypoints.web.address=:80
+#   - --providers.docker=true
+#   - --providers.docker.watch=true
+#   - --providers.docker.network=web
+#   - --providers.docker.exposedbydefault=false
+#   - --log.level=debug
+#   - --certificatesresolvers.mytlschallenge.acme.tlschallenge.entrypoint=websecure
+  labels:
+   - traefik.enable=true
+   - traefik.http.routers.traefik.rule=Host(`traefik.dsp-archiwebo20-mt-ma-ca-fd.fr`)
+   - traefik.http.services.traefik.loadbalancer.server.port=8080
+   - traefik.http.routers.traefik.entrypoints=websecure
+   - traefik.http.routers.traefik.tls=true
+   - traefik.http.routers.traefik.tls.certresolver=myresolver
+   - traefik.http.routers.traefik-https.tls=true
+#   - traefik.http.routers.traefik-https.tls.domains[0].main=*.dsp-archiwebo20-mt-ma-ca-fd.fr
+#   - traefik.http.routers.traefik-https.tls.domains[0].sans= dsp-archiwebo20-mt-ma-ca-fd.fr
+  extra_hosts:
+   - "dsp-archiwebo20-mt-ma-ca-fd.fr:51.15.12.139"
+   - "traefik.dsp-archiwebo20-mt-ma-ca-fd.fr:51.15.12.139"
+   - "gogs.dsp-archiwebo20-mt-ma-ca-fd.fr:51.15.12.139"
+   - "jenkins.dsp-archiwebo20-mt-ma-ca-fd.fr:51.15.12.139"
+   - "nexus.dsp-archiwebo20-mt-ma-ca-fd.fr:51.15.12.139"
+   - "whoami.dsp-archiwebo20-mt-ma-ca-fd.fr:51.15.12.139"
+  restart: always
+
+ #----------
+ #---Gogs---
+ #----------
+ gogs-db:
+  image: postgres:13-alpine
+  volumes:
+   - ./data/gogs/postgres:/var/lib/postresql/data
+  networks:
+   - private
+  environment:
+   - POSTGRES_DB=gogs
+   - POSTGRES_USER=gogs
+   - POSTGRES_PASSWORD=gogs
+  restart: always
+
+
+ nexus:
+  container_name: nexus
+  image: sonatype/nexus3
+  restart: always
+  networks:
+   - web
+   - private
+  volumes:
+   - /nexus-data:/nexus-data 
+  labels:
+   - traefik.port=8081
+   - traefik.http.routers.nexus.rule=Host(`nexus.dsp-archiwebo20-mt-ma-ca-fd.fr`)
+   - traefik.enable=true
+   - traefik.http.routers.nexus.entrypoints=websecure
+   - traefik.http.routers.nexus.tls=true
+   - traefik.http.routers.nexus.tls.certresolver=myresolver
+  extra_hosts:
+   - "dsp-archiwebo20-mt-ma-ca-fd.fr:51.15.12.139"
+   - "traefik.dsp-archiwebo20-mt-ma-ca-fd.fr:51.15.12.139"
+   - "gogs.dsp-archiwebo20-mt-ma-ca-fd.fr:51.15.12.139"
+   - "jenkins.dsp-archiwebo20-mt-ma-ca-fd.fr:51.15.12.139"
+   - "nexus.dsp-archiwebo20-mt-ma-ca-fd.fr:51.15.12.139"
+   - "whoami.dsp-archiwebo20-mt-ma-ca-fd.fr:51.15.12.139"
+
+ gogs:
+  image: gogs/gogs:0.12
+  ports: 
+   - 2222:2222
+  volumes:
+   - ./data/gogs/data:/data
+  networks:
+   - private
+   - web 
+  labels:
+   - traefik.enable=true
+   - traefik.http.routers.gogs.rule=Host(`gogs.dsp-archiwebo20-mt-ma-ca-fd.fr`)
+   - traefik.http.services.gogs.loadbalancer.server.port=3000
+   - traefik.http.routers.gogs.entrypoints=websecure
+   - traefik.http.routers.gogs.tls=true
+   - traefik.http.routers.gogs.tls.certresolver=myresolver
+  extra_hosts:
+   - "dsp-archiwebo20-mt-ma-ca-fd.fr:51.15.12.139"
+   - "traefik.dsp-archiwebo20-mt-ma-ca-fd.fr:51.15.12.139"
+   - "gogs.dsp-archiwebo20-mt-ma-ca-fd.fr:51.15.12.139"
+   - "jenkins.dsp-archiwebo20-mt-ma-ca-fd.fr:51.15.12.139"
+   - "nexus.dsp-archiwebo20-mt-ma-ca-fd.fr:51.15.12.139"
+   - "whoami.dsp-archiwebo20-mt-ma-ca-fd.fr:51.15.12.139"
+  restart: always
+
+ whoami:
+  image: "traefik/whoami"
+  container_name: "simple-service"
+  labels:
+   - traefik.enable=true
+   - traefik.http.routers.whoami.rule=Host(`whoami.dsp-archiwebo20-mt-ma-ca-fd.fr`)
+   - traefik.http.routers.whoami.entrypoints=websecure
+   - traefik.http.routers.whoami.tls=true
+   - traefik.http.routers.whoami.tls.certresolver=myresolver
+
+ #-------------
+ #---Jenkins---
+ #-------------
+ 
+ jenkins:
+   build: images/jenkins
+   volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+    - ./data/jenkins:/var/jenkins_home
+   networks:
+    - web
+    - private
+   labels:
+    - traefik.enable=true
+    - traefik.http.routers.jenkins.rule=Host(`jenkins.dsp-archiwebo20-mt-ma-ca-fd.fr`)
+    - traefik.http.services.jenkins.loadbalancer.server.port=8080
+    - traefik.http.routers.jenkins.entrypoints=websecure
+    - traefik.http.routers.jenkins.tls=true
+    - traefik.http.routers.jenkins.tls.certresolver=myresolver
+   extra_hosts:
+    - "dsp-archiwebo20-mt-ma-ca-fd.fr:51.15.12.139"
+    - "traefik.dsp-archiwebo20-mt-ma-ca-fd.fr:51.15.12.139"
+    - "gogs.dsp-archiwebo20-mt-ma-ca-fd.fr:51.15.12.139"
+    - "jenkins.dsp-archiwebo20-mt-ma-ca-fd.fr:51.15.12.139"
+    - "nexus.dsp-archiwebo20-mt-ma-ca-fd.fr:51.15.12.139"
+    - "whoami.dsp-archiwebo20-mt-ma-ca-fd.fr:51.15.12.139"
+   restart: always
+
