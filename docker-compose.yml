@@ -29,13 +29,16 @@ services:
    - --providers.docker=true
    - --providers.docker.exposedbydefault=true
    - --entrypoints.web.address=:80
+   ####---- start decomment for prod -----  ####
    - --entrypoints.websecure.address=:443
-   - --entrypoints.web.http.redirections.entryPoint.to=websecure
-   - --entrypoints.web.http.redirections.entryPoint.scheme=https
-   - --certificatesresolvers.myresolver.acme.httpchallenge=true
-   - --certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web
-   - --certificatesresolvers.myresolver.acme.email=projetthiptop@gmail.com
-   - --certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json
+   #- --entrypoints.web.http.redirections.entryPoint.to=websecure
+   #- --entrypoints.web.http.redirections.entryPoint.scheme=https
+   #- --certificatesresolvers.myresolver.acme.httpchallenge=true
+   #- --certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web
+   #- --certificatesresolvers.myresolver.acme.email=projetthiptop@gmail.com
+   # - --certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json
+  ####---- end decomment for prod -----  ####
+
 #   - --api.dashboard=true
 #   - --api.insecure=true
 #   - --entrypoints.web.address=:80
@@ -47,21 +50,24 @@ services:
 #   - --certificatesresolvers.mytlschallenge.acme.tlschallenge.entrypoint=websecure
   labels:
    - traefik.enable=true
-   - traefik.http.routers.traefik.rule=Host(`traefik.dsp-archiwebo20-mt-ma-ca-fd.fr`)
+   - traefik.http.routers.traefik.rule=Host(`traefik.${HOST_URL}`)
    - traefik.http.services.traefik.loadbalancer.server.port=8080
-   - traefik.http.routers.traefik.entrypoints=websecure
-   - traefik.http.routers.traefik.tls=true
+   - traefik.http.routers.traefik.entrypoints=${TRAEFIK_ENTRYPOINTS}
+   - traefik.http.routers.traefik.tls=${TLS}
    - traefik.http.routers.traefik.tls.certresolver=myresolver
-   - traefik.http.routers.traefik-https.tls=true
-#   - traefik.http.routers.traefik-https.tls.domains[0].main=*.dsp-archiwebo20-mt-ma-ca-fd.fr
-#   - traefik.http.routers.traefik-https.tls.domains[0].sans= dsp-archiwebo20-mt-ma-ca-fd.fr
+   - traefik.http.routers.traefik-https.tls=${TLS}
+#   - traefik.http.routers.traefik-https.tls.domains[0].main=*.${HOST_URL}
+#   - traefik.http.routers.traefik-https.tls.domains[0].sans= ${HOST_URL}
   extra_hosts:
-   - "dsp-archiwebo20-mt-ma-ca-fd.fr:51.15.12.139"
-   - "traefik.dsp-archiwebo20-mt-ma-ca-fd.fr:51.15.12.139"
-   - "gogs.dsp-archiwebo20-mt-ma-ca-fd.fr:51.15.12.139"
-   - "jenkins.dsp-archiwebo20-mt-ma-ca-fd.fr:51.15.12.139"
-   - "nexus.dsp-archiwebo20-mt-ma-ca-fd.fr:51.15.12.139"
-   - "whoami.dsp-archiwebo20-mt-ma-ca-fd.fr:51.15.12.139"
+   - "${HOST_URL}:${HOST_IP}"
+   - "traefik.${HOST_URL}:${HOST_IP}"
+   - "gogs.${HOST_URL}:${HOST_IP}"
+   - "jenkins.${HOST_URL}:${HOST_IP}"
+   - "nexus.${HOST_URL}:${HOST_IP}"
+   - "whoami.${HOST_URL}:${HOST_IP}"
+   - "cadvisor.${HOST_URL}:${HOST_IP}"
+   - "prometheus.${HOST_URL}:${HOST_IP}"
+   - "grafana.${HOST_URL}:${HOST_IP}"
   restart: always
 
  #----------
@@ -86,23 +92,25 @@ services:
   restart: always
   networks:
    - web
-   - private
   volumes:
    - /nexus-data:/nexus-data 
   labels:
    - traefik.port=8081
-   - traefik.http.routers.nexus.rule=Host(`nexus.dsp-archiwebo20-mt-ma-ca-fd.fr`)
+   - traefik.http.routers.nexus.rule=Host(`nexus.${HOST_URL}`)
    - traefik.enable=true
-   - traefik.http.routers.nexus.entrypoints=websecure
-   - traefik.http.routers.nexus.tls=true
+   - traefik.http.routers.nexus.entrypoints=${TRAEFIK_ENTRYPOINTS}
+   - traefik.http.routers.nexus.tls=${TLS}
    - traefik.http.routers.nexus.tls.certresolver=myresolver
   extra_hosts:
-   - "dsp-archiwebo20-mt-ma-ca-fd.fr:51.15.12.139"
-   - "traefik.dsp-archiwebo20-mt-ma-ca-fd.fr:51.15.12.139"
-   - "gogs.dsp-archiwebo20-mt-ma-ca-fd.fr:51.15.12.139"
-   - "jenkins.dsp-archiwebo20-mt-ma-ca-fd.fr:51.15.12.139"
-   - "nexus.dsp-archiwebo20-mt-ma-ca-fd.fr:51.15.12.139"
-   - "whoami.dsp-archiwebo20-mt-ma-ca-fd.fr:51.15.12.139"
+   - "${HOST_URL}:${HOST_IP}"
+   - "traefik.${HOST_URL}:${HOST_IP}"
+   - "gogs.${HOST_URL}:${HOST_IP}"
+   - "jenkins.${HOST_URL}:${HOST_IP}"
+   - "nexus.${HOST_URL}:${HOST_IP}"
+   - "whoami.${HOST_URL}:${HOST_IP}"
+   - "cadvisor.${HOST_URL}:${HOST_IP}"
+   - "prometheus.${HOST_URL}:${HOST_IP}"
+   - "grafana.${HOST_URL}:${HOST_IP}"
 
  gogs:
   image: gogs/gogs:0.12
@@ -111,22 +119,24 @@ services:
   volumes:
    - ./data/gogs/data:/data
   networks:
-   - private
    - web 
   labels:
    - traefik.enable=true
-   - traefik.http.routers.gogs.rule=Host(`gogs.dsp-archiwebo20-mt-ma-ca-fd.fr`)
+   - traefik.http.routers.gogs.rule=Host(`gogs.${HOST_URL}`)
    - traefik.http.services.gogs.loadbalancer.server.port=3000
-   - traefik.http.routers.gogs.entrypoints=websecure
-   - traefik.http.routers.gogs.tls=true
+   - traefik.http.routers.gogs.entrypoints=${TRAEFIK_ENTRYPOINTS}
+   - traefik.http.routers.gogs.tls=${TLS}
    - traefik.http.routers.gogs.tls.certresolver=myresolver
   extra_hosts:
-   - "dsp-archiwebo20-mt-ma-ca-fd.fr:51.15.12.139"
-   - "traefik.dsp-archiwebo20-mt-ma-ca-fd.fr:51.15.12.139"
-   - "gogs.dsp-archiwebo20-mt-ma-ca-fd.fr:51.15.12.139"
-   - "jenkins.dsp-archiwebo20-mt-ma-ca-fd.fr:51.15.12.139"
-   - "nexus.dsp-archiwebo20-mt-ma-ca-fd.fr:51.15.12.139"
-   - "whoami.dsp-archiwebo20-mt-ma-ca-fd.fr:51.15.12.139"
+   - "${HOST_URL}:${HOST_IP}"
+   - "traefik.${HOST_URL}:${HOST_IP}"
+   - "gogs.${HOST_URL}:${HOST_IP}"
+   - "jenkins.${HOST_URL}:${HOST_IP}"
+   - "nexus.${HOST_URL}:${HOST_IP}"
+   - "whoami.${HOST_URL}:${HOST_IP}"
+   - "cadvisor.${HOST_URL}:${HOST_IP}"
+   - "prometheus.${HOST_URL}:${HOST_IP}"
+   - "grafana.${HOST_URL}:${HOST_IP}"
   restart: always
 
  whoami:
@@ -134,9 +144,9 @@ services:
   container_name: "simple-service"
   labels:
    - traefik.enable=true
-   - traefik.http.routers.whoami.rule=Host(`whoami.dsp-archiwebo20-mt-ma-ca-fd.fr`)
-   - traefik.http.routers.whoami.entrypoints=websecure
-   - traefik.http.routers.whoami.tls=true
+   - traefik.http.routers.whoami.rule=Host(`whoami.${HOST_URL}`)
+   - traefik.http.routers.whoami.entrypoints=${TRAEFIK_ENTRYPOINTS}
+   - traefik.http.routers.whoami.tls=${TLS}
    - traefik.http.routers.whoami.tls.certresolver=myresolver
 
  #-------------
@@ -150,20 +160,114 @@ services:
     - ./data/jenkins:/var/jenkins_home
    networks:
     - web
-    - private
    labels:
     - traefik.enable=true
-    - traefik.http.routers.jenkins.rule=Host(`jenkins.dsp-archiwebo20-mt-ma-ca-fd.fr`)
+    - traefik.http.routers.jenkins.rule=Host(`jenkins.${HOST_URL}`)
     - traefik.http.services.jenkins.loadbalancer.server.port=8080
-    - traefik.http.routers.jenkins.entrypoints=websecure
-    - traefik.http.routers.jenkins.tls=true
+    - traefik.http.routers.jenkins.entrypoints=${TRAEFIK_ENTRYPOINTS}
+    - traefik.http.routers.jenkins.tls=${TLS}
     - traefik.http.routers.jenkins.tls.certresolver=myresolver
    extra_hosts:
-    - "dsp-archiwebo20-mt-ma-ca-fd.fr:51.15.12.139"
-    - "traefik.dsp-archiwebo20-mt-ma-ca-fd.fr:51.15.12.139"
-    - "gogs.dsp-archiwebo20-mt-ma-ca-fd.fr:51.15.12.139"
-    - "jenkins.dsp-archiwebo20-mt-ma-ca-fd.fr:51.15.12.139"
-    - "nexus.dsp-archiwebo20-mt-ma-ca-fd.fr:51.15.12.139"
-    - "whoami.dsp-archiwebo20-mt-ma-ca-fd.fr:51.15.12.139"
+    - "${HOST_URL}:${HOST_IP}"
+    - "traefik.${HOST_URL}:${HOST_IP}"
+    - "gogs.${HOST_URL}:${HOST_IP}"
+    - "jenkins.${HOST_URL}:${HOST_IP}"
+    - "nexus.${HOST_URL}:${HOST_IP}"
+    - "whoami.${HOST_URL}:${HOST_IP}"
+    - "cadvisor.${HOST_URL}:${HOST_IP}"
+    - "prometheus.${HOST_URL}:${HOST_IP}"
+    - "grafana.${HOST_URL}:${HOST_IP}"
    restart: always
 
+
+ cadvisor:
+  image: google/cadvisor
+  container_name: cadvisor
+  volumes:
+   - /:/rootfs:ro
+   - /var/run:/var/run:rw
+   - /sys:/sys:ro
+   - /var/lib/docker/:/var/lib/docker:ro
+  networks:
+   - web
+  labels:
+   - traefik.enable=true
+   - traefik.http.routers.cadvisor.rule=Host(`cadvisor.${HOST_URL}`)
+   - traefik.http.services.cadvisor.loadbalancer.server.port=8080
+   - traefik.http.routers.cadvisor.entrypoints=${TRAEFIK_ENTRYPOINTS}
+   - traefik.http.routers.cadvisor.tls=${TLS}
+   - traefik.http.routers.cadvisor.tls.certresolver=myresolver
+  extra_hosts:
+   - "${HOST_URL}:${HOST_IP}"
+   - "traefik.${HOST_URL}:${HOST_IP}"
+   - "gogs.${HOST_URL}:${HOST_IP}"
+   - "jenkins.${HOST_URL}:${HOST_IP}"
+   - "nexus.${HOST_URL}:${HOST_IP}"
+   - "whoami.${HOST_URL}:${HOST_IP}"
+   - "cadvisor.${HOST_URL}:${HOST_IP}"
+   - "prometheus.${HOST_URL}:${HOST_IP}"
+   - "grafana.${HOST_URL}:${HOST_IP}"
+  restart: always
+
+ prometheus:
+  image: prom/prometheus:latest
+  container_name: prometheus
+  volumes:
+   - ./prometheus/:/etc/prometheus/
+   - prometheus-data:/prometheus
+  command:
+   - '--config.file=/etc/prometheus/prometheus.yml'
+   - '--storage.tsdb.path=/prometheus'
+   - '--web.console.libraries=/etc/prometheus/console_libraries'
+   - '--web.console.templates=/etc/prometheus/consoles'
+   - '--storage.tsdb.retention=200h'
+  networks:
+   - web
+  labels:
+    - traefik.enable=true
+    - traefik.http.routers.prometheus.rule=Host(`prometheus.${HOST_URL}`)
+    - traefik.http.services.prometheus.loadbalancer.server.port=9090
+    - traefik.http.routers.prometheus.entrypoints=${TRAEFIK_ENTRYPOINTS}
+    - traefik.http.routers.prometheus.tls=${TLS}
+    - traefik.http.routers.prometheus.tls.certresolver=myresolver
+  extra_hosts:
+   - "${HOST_URL}:${HOST_IP}"
+   - "traefik.${HOST_URL}:${HOST_IP}"
+   - "gogs.${HOST_URL}:${HOST_IP}"
+   - "jenkins.${HOST_URL}:${HOST_IP}"
+   - "nexus.${HOST_URL}:${HOST_IP}"
+   - "whoami.${HOST_URL}:${HOST_IP}"
+   - "cadvisor.${HOST_URL}:${HOST_IP}"
+   - "prometheus.${HOST_URL}:${HOST_IP}"
+   - "grafana.${HOST_URL}:${HOST_IP}"
+  restart: always
+
+ grafana:
+  image: grafana/grafana:latest
+  container_name: grafana
+  volumes:
+   - grafana-data:/var/lib/grafana
+  networks:
+   - web
+  labels:
+   - traefik.enable=true
+   - traefik.http.routers.grafana.rule=Host(`grafana.${HOST_URL}`)
+   - traefik.http.services.grafana.loadbalancer.server.port=3000
+   - traefik.http.routers.grafana.entrypoints=${TRAEFIK_ENTRYPOINTS}
+   - traefik.http.routers.grafana.tls=${TLS}
+   - traefik.http.routers.grafana.tls.certresolver=myresolver
+  extra_hosts:
+   - "${HOST_URL}:${HOST_IP}"
+   - "traefik.${HOST_URL}:${HOST_IP}"
+   - "gogs.${HOST_URL}:${HOST_IP}"
+   - "jenkins.${HOST_URL}:${HOST_IP}"
+   - "nexus.${HOST_URL}:${HOST_IP}"
+   - "whoami.${HOST_URL}:${HOST_IP}"
+   - "cadvisor.${HOST_URL}:${HOST_IP}"
+   - "prometheus.${HOST_URL}:${HOST_IP}"
+   - "grafana.${HOST_URL}:${HOST_IP}"
+  restart: always
+
+volumes:
+  prometheus-data: {}
+  grafana-data: {}
