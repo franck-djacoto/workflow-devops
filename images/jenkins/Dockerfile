@@ -7,5 +7,5 @@ RUN curl -y -fsSL https://get.docker.com | sh
 RUN groupadd -g 998 docker 
 RUN usermod -aG docker jenkins
 
-USER root
+USER jenkins
 

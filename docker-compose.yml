@@ -31,12 +31,12 @@ services:
    - --entrypoints.web.address=:80
    ####---- start decomment for prod -----  ####
    - --entrypoints.websecure.address=:443
-   #- --entrypoints.web.http.redirections.entryPoint.to=websecure
-   #- --entrypoints.web.http.redirections.entryPoint.scheme=https
-   #- --certificatesresolvers.myresolver.acme.httpchallenge=true
-   #- --certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web
-   #- --certificatesresolvers.myresolver.acme.email=projetthiptop@gmail.com
-   # - --certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json
+   - --entrypoints.web.http.redirections.entryPoint.to=websecure
+   - --entrypoints.web.http.redirections.entryPoint.scheme=https
+   - --certificatesresolvers.myresolver.acme.httpchallenge=true
+   - --certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web
+   - --certificatesresolvers.myresolver.acme.email=projetthiptop@gmail.com
+   - --certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json
   ####---- end decomment for prod -----  ####
 
 #   - --api.dashboard=true
