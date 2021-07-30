@@ -95,18 +95,28 @@ services:
   volumes:
    - /nexus-data:/nexus-data 
   labels:
-   - traefik.port=8081
+  # - traefik.port=8081
+   - traefik.http.services.nexus.loadbalancer.server.port=8081
    - traefik.http.routers.nexus.rule=Host(`nexus.${HOST_URL}`)
    - traefik.enable=true
    - traefik.http.routers.nexus.entrypoints=${TRAEFIK_ENTRYPOINTS}
    - traefik.http.routers.nexus.tls=${TLS}
    - traefik.http.routers.nexus.tls.certresolver=myresolver
+   - traefik.http.routers.nexus.service=nexus
+   - traefik.http.routers.repo-nexus.rule=Host(`registry.${HOST_URL}`)
+   - traefik.http.routers.repo-nexus.entrypoints=${TRAEFIK_ENTRYPOINTS}
+   - traefik.http.services.repo-nexus.loadbalancer.server.port=8082
+   - traefik.http.routers.repo-nexus.tls=${TLS}
+   - traefik.http.routers.repo-nexus.tls.certresolver=myresolver
+   - traefik.http.routers.repo-nexus.service=repo-nexus
+
   extra_hosts:
    - "${HOST_URL}:${HOST_IP}"
    - "traefik.${HOST_URL}:${HOST_IP}"
    - "gogs.${HOST_URL}:${HOST_IP}"
    - "jenkins.${HOST_URL}:${HOST_IP}"
    - "nexus.${HOST_URL}:${HOST_IP}"
+   - "registry.${HOST_URL}:${HOST_IP}"
    - "whoami.${HOST_URL}:${HOST_IP}"
    - "cadvisor.${HOST_URL}:${HOST_IP}"
    - "prometheus.${HOST_URL}:${HOST_IP}"
@@ -120,6 +130,7 @@ services:
    - ./data/gogs/data:/data
   networks:
    - web 
+   - private
   labels:
    - traefik.enable=true
    - traefik.http.routers.gogs.rule=Host(`gogs.${HOST_URL}`)
@@ -133,6 +144,7 @@ services:
    - "gogs.${HOST_URL}:${HOST_IP}"
    - "jenkins.${HOST_URL}:${HOST_IP}"
    - "nexus.${HOST_URL}:${HOST_IP}"
+   - "registry.${HOST_URL}:${HOST_IP}"
    - "whoami.${HOST_URL}:${HOST_IP}"
    - "cadvisor.${HOST_URL}:${HOST_IP}"
    - "prometheus.${HOST_URL}:${HOST_IP}"
@@ -173,6 +185,7 @@ services:
     - "gogs.${HOST_URL}:${HOST_IP}"
     - "jenkins.${HOST_URL}:${HOST_IP}"
     - "nexus.${HOST_URL}:${HOST_IP}"
+    - "registry.${HOST_URL}:${HOST_IP}"
     - "whoami.${HOST_URL}:${HOST_IP}"
     - "cadvisor.${HOST_URL}:${HOST_IP}"
     - "prometheus.${HOST_URL}:${HOST_IP}"
@@ -203,6 +216,7 @@ services:
    - "gogs.${HOST_URL}:${HOST_IP}"
    - "jenkins.${HOST_URL}:${HOST_IP}"
    - "nexus.${HOST_URL}:${HOST_IP}"
+   - "registry.${HOST_URL}:${HOST_IP}"
    - "whoami.${HOST_URL}:${HOST_IP}"
    - "cadvisor.${HOST_URL}:${HOST_IP}"
    - "prometheus.${HOST_URL}:${HOST_IP}"
@@ -236,6 +250,7 @@ services:
    - "gogs.${HOST_URL}:${HOST_IP}"
    - "jenkins.${HOST_URL}:${HOST_IP}"
    - "nexus.${HOST_URL}:${HOST_IP}"
+   - "registry.${HOST_URL}:${HOST_IP}"
    - "whoami.${HOST_URL}:${HOST_IP}"
    - "cadvisor.${HOST_URL}:${HOST_IP}"
    - "prometheus.${HOST_URL}:${HOST_IP}"
@@ -262,6 +277,7 @@ services:
    - "gogs.${HOST_URL}:${HOST_IP}"
    - "jenkins.${HOST_URL}:${HOST_IP}"
    - "nexus.${HOST_URL}:${HOST_IP}"
+   - "registry.${HOST_URL}:${HOST_IP}"
    - "whoami.${HOST_URL}:${HOST_IP}"
    - "cadvisor.${HOST_URL}:${HOST_IP}"
    - "prometheus.${HOST_URL}:${HOST_IP}"
