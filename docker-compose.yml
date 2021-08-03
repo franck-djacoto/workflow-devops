@@ -68,6 +68,7 @@ services:
    - "cadvisor.${HOST_URL}:${HOST_IP}"
    - "prometheus.${HOST_URL}:${HOST_IP}"
    - "grafana.${HOST_URL}:${HOST_IP}"
+   - "preprod-admin.${HOST_URL}:${HOST_IP}"
   restart: always
 
  #----------
@@ -121,6 +122,8 @@ services:
    - "cadvisor.${HOST_URL}:${HOST_IP}"
    - "prometheus.${HOST_URL}:${HOST_IP}"
    - "grafana.${HOST_URL}:${HOST_IP}"
+   - "backend.${HOST_URL}:${HOST_IP}"
+   - "preprod-admin.${HOST_URL}:${HOST_IP}"
 
  gogs:
   image: gogs/gogs:0.12
@@ -149,7 +152,57 @@ services:
    - "cadvisor.${HOST_URL}:${HOST_IP}"
    - "prometheus.${HOST_URL}:${HOST_IP}"
    - "grafana.${HOST_URL}:${HOST_IP}"
+   - "preprod-admin.${HOST_URL}:${HOST_IP}"
   restart: always
+
+
+ preprod-admin:
+  image: 154265/laravel:131
+  container_name: preprod-admin
+  restart: unless-stopped
+  working_dir: /var/www/
+  volumes:
+   - /var/.env.test:/var/www/.env
+  networks:
+   - web
+   - private
+  labels:
+   - traefik.http.routers.preprod-admin.rule=Host(`preprod-admin.${HOST_URL}`)
+   - traefik.http.services.preprod-admin.loadbalancer.server.port=8000
+   - traefik.enable=true
+   - traefik.http.routers.preprod-admin.entrypoints=${TRAEFIK_ENTRYPOINTS}
+   - traefik.http.routers.preprod-admin.tls=${TLS}
+   - traefik.http.routers.preprod-admin.tls.certresolver=myresolver 
+  extra_hosts:
+   - "${HOST_URL}:${HOST_IP}"
+   - "traefik.${HOST_URL}:${HOST_IP}"
+   - "gogs.${HOST_URL}:${HOST_IP}"
+   - "jenkins.${HOST_URL}:${HOST_IP}"
+   - "nexus.${HOST_URL}:${HOST_IP}"
+   - "whoami.${HOST_URL}:${HOST_IP}"
+   - "cadvisor.${HOST_URL}:${HOST_IP}"
+   - "prometheus.${HOST_URL}:${HOST_IP}"
+   - "grafana.${HOST_URL}:${HOST_IP}"
+   - "preprod-admin.${HOST_URL}:${HOST_IP}"
+
+ db:
+  platform: linux/x86_64
+  image: mysql/mysql-server:8.0.23
+  container_name: thetiptop-db
+  restart: unless-stopped
+  environment:
+   MYSQL_DATABASE: "thetiptop"
+   MYSQL_RANDOM_ROOT_PASSWORD: 1
+   MYSQL_USER: "root"
+   MYSQL_PASSWORD: "root"
+   SERVICE_TAGS: dev
+   SERVICE_NAME: mysql
+  volumes:
+   - ./docker-compose/mysql:/docker-entrypoint-initdb.d
+  networks:
+   - web
+   - private
+
 
  whoami:
   image: "traefik/whoami"
@@ -190,6 +243,7 @@ services:
     - "cadvisor.${HOST_URL}:${HOST_IP}"
     - "prometheus.${HOST_URL}:${HOST_IP}"
     - "grafana.${HOST_URL}:${HOST_IP}"
+    - "preprod-admin.${HOST_URL}:${HOST_IP}"
    restart: always
 
 
@@ -221,6 +275,7 @@ services:
    - "cadvisor.${HOST_URL}:${HOST_IP}"
    - "prometheus.${HOST_URL}:${HOST_IP}"
    - "grafana.${HOST_URL}:${HOST_IP}"
+   - "preprod-admin.${HOST_URL}:${HOST_IP}"
   restart: always
 
  prometheus:
@@ -255,6 +310,7 @@ services:
    - "cadvisor.${HOST_URL}:${HOST_IP}"
    - "prometheus.${HOST_URL}:${HOST_IP}"
    - "grafana.${HOST_URL}:${HOST_IP}"
+   - "preprod-admin.${HOST_URL}:${HOST_IP}"
   restart: always
 
  grafana:
@@ -282,6 +338,7 @@ services:
    - "cadvisor.${HOST_URL}:${HOST_IP}"
    - "prometheus.${HOST_URL}:${HOST_IP}"
    - "grafana.${HOST_URL}:${HOST_IP}"
+   - "preprod-admin.${HOST_URL}:${HOST_IP}"
   restart: always
 
 volumes:
