@@ -69,6 +69,8 @@ services:
    - "prometheus.${HOST_URL}:${HOST_IP}"
    - "grafana.${HOST_URL}:${HOST_IP}"
    - "preprod-admin.${HOST_URL}:${HOST_IP}"
+   - "phpadmin.${HOST_URL}:${HOST_IP}"
+   - "frontend.${HOST_URL}:${HOST_IP}"
   restart: always
 
  #----------
@@ -124,6 +126,8 @@ services:
    - "grafana.${HOST_URL}:${HOST_IP}"
    - "backend.${HOST_URL}:${HOST_IP}"
    - "preprod-admin.${HOST_URL}:${HOST_IP}"
+   - "phpadmin.${HOST_URL}:${HOST_IP}"
+   - "frontend.${HOST_URL}:${HOST_IP}"
 
  gogs:
   image: gogs/gogs:0.12
@@ -153,11 +157,13 @@ services:
    - "prometheus.${HOST_URL}:${HOST_IP}"
    - "grafana.${HOST_URL}:${HOST_IP}"
    - "preprod-admin.${HOST_URL}:${HOST_IP}"
+   - "phpadmin.${HOST_URL}:${HOST_IP}"
+   - "frontend.${HOST_URL}:${HOST_IP}"
   restart: always
 
 
  preprod-admin:
-  image: 154265/laravel:131
+  image: 154265/laravel:latest
   container_name: preprod-admin
   restart: unless-stopped
   working_dir: /var/www/
@@ -184,6 +190,36 @@ services:
    - "prometheus.${HOST_URL}:${HOST_IP}"
    - "grafana.${HOST_URL}:${HOST_IP}"
    - "preprod-admin.${HOST_URL}:${HOST_IP}"
+   - "phpadmin.${HOST_URL}:${HOST_IP}"
+   - "frontend.${HOST_URL}:${HOST_IP}"
+ frontend:
+  image: 154265/frontend:latest
+  container_name: thetiptop-frontent
+  networks:
+   - web
+   - private
+  working_dir: /usr/local/app
+  extra_hosts:
+   - "${HOST_URL}:${HOST_IP}"
+   - "traefik.${HOST_URL}:${HOST_IP}"
+   - "gogs.${HOST_URL}:${HOST_IP}"
+   - "jenkins.${HOST_URL}:${HOST_IP}"
+   - "nexus.${HOST_URL}:${HOST_IP}"
+   - "whoami.${HOST_URL}:${HOST_IP}"
+   - "cadvisor.${HOST_URL}:${HOST_IP}"
+   - "prometheus.${HOST_URL}:${HOST_IP}"
+   - "grafana.${HOST_URL}:${HOST_IP}"
+   - "preprod-admin.${HOST_URL}:${HOST_IP}"
+   - "phpadmin.${HOST_URL}:${HOST_IP}"
+   - "frontend.${HOST_URL}:${HOST_IP}"
+  labels:
+   - traefik.http.routers.frontend.rule=Host(`frontend.${HOST_URL}`)
+   - traefik.http.services.frontend.loadbalancer.server.port=80
+   - traefik.enable=true
+   - traefik.http.routers.frontend.entrypoints=${TRAEFIK_ENTRYPOINTS}
+   - traefik.http.routers.frontend.tls=${TLS}
+   - traefik.http.routers.frontend.tls.certresolver=myresolver
+
 
  db:
   platform: linux/x86_64
@@ -202,7 +238,37 @@ services:
   networks:
    - web
    - private
-
+ 
+ phpmyadmin:
+  image: phpmyadmin/phpmyadmin
+  container_name: phpmyadmin
+  restart: unless-stopped
+  depends_on:
+   - db
+  networks:
+   - web
+   - private
+  labels:
+   - traefik.enable=true
+   - traefik.http.routers.phpadmin.rule=Host(`phpadmin.${HOST_URL}`)
+   - traefik.http.routers.phpadmin.entrypoints=${TRAEFIK_ENTRYPOINTS}
+   - traefik.http.routers.phpadmin.tls=${TLS}
+   - traefik.http.routers.phpadmin.tls.certresolver=myresolver
+  ports:
+   - '8080:80'
+  extra_hosts:
+   - "${HOST_URL}:${HOST_IP}"
+   - "traefik.${HOST_URL}:${HOST_IP}"
+   - "gogs.${HOST_URL}:${HOST_IP}"
+   - "jenkins.${HOST_URL}:${HOST_IP}"
+   - "nexus.${HOST_URL}:${HOST_IP}"
+   - "whoami.${HOST_URL}:${HOST_IP}"
+   - "cadvisor.${HOST_URL}:${HOST_IP}"
+   - "prometheus.${HOST_URL}:${HOST_IP}"
+   - "grafana.${HOST_URL}:${HOST_IP}"
+   - "phpadmin.${HOST_URL}:${HOST_IP}"
+   - "preprod-admin.${HOST_URL}:${HOST_IP}"
+   - "frontend.${HOST_URL}:${HOST_IP}"
 
  whoami:
   image: "traefik/whoami"
@@ -244,6 +310,8 @@ services:
     - "prometheus.${HOST_URL}:${HOST_IP}"
     - "grafana.${HOST_URL}:${HOST_IP}"
     - "preprod-admin.${HOST_URL}:${HOST_IP}"
+    - "phpadmin.${HOST_URL}:${HOST_IP}"
+    - "frontend.${HOST_URL}:${HOST_IP}"
    restart: always
 
 
@@ -276,6 +344,8 @@ services:
    - "prometheus.${HOST_URL}:${HOST_IP}"
    - "grafana.${HOST_URL}:${HOST_IP}"
    - "preprod-admin.${HOST_URL}:${HOST_IP}"
+   - "phpadmin.${HOST_URL}:${HOST_IP}"
+   - "frontend.${HOST_URL}:${HOST_IP}"
   restart: always
 
  prometheus:
@@ -311,6 +381,8 @@ services:
    - "prometheus.${HOST_URL}:${HOST_IP}"
    - "grafana.${HOST_URL}:${HOST_IP}"
    - "preprod-admin.${HOST_URL}:${HOST_IP}"
+   - "phpadmin.${HOST_URL}:${HOST_IP}"
+   - "frontend.${HOST_URL}:${HOST_IP}"
   restart: always
 
  grafana:
@@ -339,6 +411,8 @@ services:
    - "prometheus.${HOST_URL}:${HOST_IP}"
    - "grafana.${HOST_URL}:${HOST_IP}"
    - "preprod-admin.${HOST_URL}:${HOST_IP}"
+   - "phpadmin.${HOST_URL}:${HOST_IP}"
+   - "frontend.${HOST_URL}:${HOST_IP}"
   restart: always
 
 volumes:
