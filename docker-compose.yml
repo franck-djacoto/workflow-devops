@@ -72,6 +72,7 @@ services:
    - "phpadmin.${HOST_URL}:${HOST_IP}"
    - "frontend.${HOST_URL}:${HOST_IP}"
    - "prod-admin.${HOST_URL}:${HOST_IP}"
+   - "portainer.${HOST_URL}:${HOST_IP}"
   restart: always
 
  #----------
@@ -162,6 +163,7 @@ services:
    - "phpadmin.${HOST_URL}:${HOST_IP}"
    - "frontend.${HOST_URL}:${HOST_IP}"
    - "prod-admin.${HOST_URL}:${HOST_IP}"
+   - "portainer.${HOST_URL}:${HOST_IP}"
   restart: always
 
 
@@ -196,6 +198,7 @@ services:
    - "phpadmin.${HOST_URL}:${HOST_IP}"
    - "frontend.${HOST_URL}:${HOST_IP}"
    - "prod-admin.${HOST_URL}:${HOST_IP}"
+   - "portainer.${HOST_URL}:${HOST_IP}"
 
 
  prod-admin:
@@ -229,6 +232,7 @@ services:
    - "prod-admin.${HOST_URL}:${HOST_IP}"
    - "phpadmin.${HOST_URL}:${HOST_IP}"
    - "frontend.${HOST_URL}:${HOST_IP}"
+   - "portainer.${HOST_URL}:${HOST_IP}"
 
 
  frontend:
@@ -259,6 +263,41 @@ services:
    - traefik.http.routers.frontend.entrypoints=${TRAEFIK_ENTRYPOINTS}
    - traefik.http.routers.frontend.tls=${TLS}
    - traefik.http.routers.frontend.tls.certresolver=myresolver
+
+ portainer:
+  image: portainer/portainer
+  container_name: thetiptop_portainer
+  command: -H unix:///var/run/docker.sock
+  restart: always
+  ports:
+   - "9000:9000"
+  volumes:
+   - /var/run/docker.sock:/var/run/docker.sock 
+  networks:
+   - web
+   - private
+  labels:
+   - traefik.http.routers.portainer.rule=Host(`portainer.${HOST_URL}`)
+   - traefik.http.services.portainer.loadbalancer.server.port=9000
+   - traefik.enable=true
+   - traefik.http.routers.portainer.entrypoints=${TRAEFIK_ENTRYPOINTS}
+   - traefik.http.routers.portainer.tls=${TLS}
+   - traefik.http.routers.portainer.tls.certresolver=myresolver
+  extra_hosts:
+   - "${HOST_URL}:${HOST_IP}"
+   - "traefik.${HOST_URL}:${HOST_IP}"
+   - "gogs.${HOST_URL}:${HOST_IP}"
+   - "jenkins.${HOST_URL}:${HOST_IP}"
+   - "nexus.${HOST_URL}:${HOST_IP}"
+   - "whoami.${HOST_URL}:${HOST_IP}"
+   - "cadvisor.${HOST_URL}:${HOST_IP}"
+   - "prometheus.${HOST_URL}:${HOST_IP}"
+   - "grafana.${HOST_URL}:${HOST_IP}"
+   - "preprod-admin.${HOST_URL}:${HOST_IP}"
+   - "phpadmin.${HOST_URL}:${HOST_IP}"
+   - "frontend.${HOST_URL}:${HOST_IP}"
+   - "prod-admin.${HOST_URL}:${HOST_IP}"
+   - "portainer.${HOST_URL}:${HOST_IP}"
 
 
  db:
@@ -332,6 +371,7 @@ services:
    - "preprod-admin.${HOST_URL}:${HOST_IP}"
    - "frontend.${HOST_URL}:${HOST_IP}"
    - "prod-admin.${HOST_URL}:${HOST_IP}"
+   - "portainer.${HOST_URL}:${HOST_IP}"
 
  whoami:
   image: "traefik/whoami"
@@ -376,6 +416,7 @@ services:
     - "phpadmin.${HOST_URL}:${HOST_IP}"
     - "frontend.${HOST_URL}:${HOST_IP}"
     - "prod-admin.${HOST_URL}:${HOST_IP}"
+    - "portainer.${HOST_URL}:${HOST_IP}"
    restart: always
 
 
@@ -411,6 +452,7 @@ services:
    - "phpadmin.${HOST_URL}:${HOST_IP}"
    - "frontend.${HOST_URL}:${HOST_IP}"
    - "prod-admin.${HOST_URL}:${HOST_IP}"
+   - "portainer.${HOST_URL}:${HOST_IP}"
   restart: always
 
  prometheus:
@@ -449,6 +491,7 @@ services:
    - "phpadmin.${HOST_URL}:${HOST_IP}"
    - "frontend.${HOST_URL}:${HOST_IP}"
    - "prod-admin.${HOST_URL}:${HOST_IP}"
+   - "portainer.${HOST_URL}:${HOST_IP}"
   restart: always
 
  grafana:
@@ -480,6 +523,7 @@ services:
    - "phpadmin.${HOST_URL}:${HOST_IP}"
    - "frontend.${HOST_URL}:${HOST_IP}"
    - "prod-admin.${HOST_URL}:${HOST_IP}"
+   - "portainer.${HOST_URL}:${HOST_IP}"
   restart: always
 
 volumes:
